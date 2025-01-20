@@ -68,11 +68,13 @@ function connectVariablesToGLSL() {
 // Constants
 const POINT = 0;
 const TRIANGLE = 1;
+const CIRCLE = 2;
 
 // Globals related to UI elements
 let g_selectedColor = [1.0, 1.0, 1.0, 1.0];
 let g_selectedSize = 5.0;
 let g_selectedType = POINT;
+let g_selectedSegments = 10.0;
 
 // Set up actions for the HTML UI elements
 function addActionsForHtmlUI() {
@@ -83,6 +85,7 @@ function addActionsForHtmlUI() {
 
   document.getElementById("pointButton").onclick = function() { g_selectedType = POINT; };
   document.getElementById("triButton").onclick = function() { g_selectedType = TRIANGLE; };
+  document.getElementById("circleButton").onclick = function() { g_selectedType = CIRCLE; };
 
   // Slider events
   document.getElementById('redSlide').addEventListener('mouseup', function() { g_selectedColor[0] = this.value / 100; });
@@ -91,6 +94,12 @@ function addActionsForHtmlUI() {
 
   // Size slider events
   document.getElementById('sizeSlide').addEventListener('mouseup', function() { g_selectedSize = this.value; });
+
+  // Circle Segment slider events
+  document.getElementById('segmentSlide').addEventListener('mouseup', function() { g_selectedSegments = this.value; });
+
+  // Draw a picture button event
+  document.getElementById("drawPictureButton").onclick = function() { drawAPicture(); };
 }
 
 function main() {
@@ -166,13 +175,17 @@ var g_sizes = [];*/
 function click(ev) {
   // Extract the event click and return it in WebGL coordinates
   [x, y] = convertCoordinatesEventToGL(ev);
+  console.log('x: ' + x, ' y: ' + y);
 
   // Create and store the new point
   let point;
   if (g_selectedType == POINT) {
     point = new Point();
-  } else {
+  } else if (g_selectedType == TRIANGLE) {
     point = new Triangle();
+  } else {
+    point = new Circle();
+    point.segments = g_selectedSegments;
   }
   point.position = [x, y];
   point.color = g_selectedColor.slice();
@@ -201,4 +214,98 @@ function click(ev) {
   // Draw every shape that is supposed to be in the canvas
   renderAllShapes();
   
+}
+
+function drawRectangleWithTriangles(widthStart, widthEnd, heightStart, heightEnd) {
+  drawTriangle([widthStart, heightStart, widthEnd, heightEnd, widthEnd, heightStart]);
+  drawTriangle([widthStart, heightStart, widthStart, heightEnd, widthEnd, heightEnd]);
+}
+
+function drawAPicture() {
+  // clear the canvas
+  g_shapesList = [];
+  renderAllShapes();
+
+  let width;
+  let height;
+
+  // draw triangles
+
+  // draw sky
+  gl.uniform4f(u_FragColor, 0.5, 0.8, 0.9, 1.0);
+  /*drawTriangle([-1, -1, 1, 1, 1, -1]);
+  drawTriangle([-1, -1, -1, 1, 1, 1]); // draw two connected triangles to make a rectangle*/
+  drawRectangleWithTriangles(-1, 1, -1, 1);
+
+  // draw grass
+  gl.uniform4f(u_FragColor, 0.2, 0.7, 0.3, 1.0);
+  drawTriangle([-1, -1, -0.5, -0.7, 0.7, -1]);
+  drawTriangle([-0.2, -1, 0.7, -0.7, 1, -1]);
+  drawTriangle([0.7, -0.7, 1, -0.7, 1, -1]);
+
+  // draw the sun
+  let sun = new Circle();
+  sun.position = [-0.6, 0.7];
+  sun.size = 35.0;
+  sun.segments = 20.0;
+  sun.color = [0.9, 0.8, 0.3, 1.0];
+  sun.render();
+  gl.uniform4f(u_FragColor, 0.9, 0.8, 0.3, 1.0);
+  drawTriangle([-0.5, 0.6, -0.3, 0.3, -0.2, 0.4]);
+  drawTriangle([-0.7, 0.6, -1.0, 0.4, -0.9, 0.3]);
+  drawTriangle([-0.6, 0.6, -0.7, 0.3, -0.5, 0.3]);
+
+  // draw clouds
+  gl.uniform4f(u_FragColor, 1.0, 1.0, 1.0, 1.0);
+  drawTriangle([-0.6, 0.7, -0.3, 0.9, -0.1, 0.7]);
+  drawTriangle([-0.6, 0.7, 0.0, 0.5, 0.2, 0.7]);
+  drawTriangle([-0.2, 0.7, 0.1, 0.9, 0.4, 0.7]);
+  drawTriangle([-0.3, 0.8, -0.6, 1.0, -0.8, 0.7]);
+  drawTriangle([-0.9, 0.7, -0.8, 0.6, -0.4, 0.8]);
+  drawTriangle([-1.0, 0.7, -0.8, 0.9, -0.4, 0.7]);
+  drawTriangle([0.6, 0.7, 0.9, 0.9, 1.0, 0.7]);
+  drawTriangle([0.8, 0.8, 1.0, 1.0, 1.0, 0.7]);
+  drawTriangle([0.8, 0.7, 1.0, 0.7, 1.0, 0.6]);
+  drawTriangle([0.5, 0.6, 0.6, 0.8, 0.9, 0.7]);
+
+  // draw silo
+  let siloRoof = new Circle();
+  siloRoof.position = [0.7, 0.3];
+  siloRoof.size = 40.0;
+  siloRoof.segments = 20.0;
+  siloRoof.color = [0.8, 0.8, 0.8, 1.0];
+  siloRoof.render();
+  gl.uniform4f(u_FragColor, 0.7, 0.7, 0.7, 1.0);
+  drawRectangleWithTriangles(0.5, 0.9, -1, 0.3);
+  gl.uniform4f(u_FragColor, 0.8, 0.8, 0.8, 1.0);
+  drawRectangleWithTriangles(0.9, 0.95, -0.95, 0.25);
+
+  
+  
+  /*drawTriangle([0.5, -1, 0.9, 0.3, 0.9, -1]);
+  drawTriangle([0.5, -1, 0.5, 0.3, 0.9, 0.3]);*/
+
+  // draw barn
+  gl.uniform4f(u_FragColor, 0.75, 0.2, 0.0, 1.0);
+
+  drawRectangleWithTriangles(-0.4, 0.8, -1, -0.3); // base
+
+  drawTriangle([-0.4, -0.3, 0.2, 0.0, 0.8, -0.3]); // roof
+
+  gl.uniform4f(u_FragColor, 1.0, 1.0, 1.0, 1.0);
+  drawRectangleWithTriangles(0.1, 0.3, -1.0, -0.7); // door
+
+  drawRectangleWithTriangles(0.1, 0.3, -0.4, -0.2); // top window
+  drawTriangle([0.1, -0.2, 0.2, -0.1, 0.3, -0.2]);
+
+  drawRectangleWithTriangles(-0.3, -0.1, -0.8, -0.6); // left window
+  drawRectangleWithTriangles(0.5, 0.7, -0.8, -0.6); // right window
+
+  // draw tree
+  gl.uniform4f(u_FragColor, 0.5, 0.3, 0.1, 1.0);
+  drawTriangle([-0.5, -1.0, -0.3, -1.0, -0.4, -0.4]); // trunk
+  gl.uniform4f(u_FragColor, 0.2, 0.5, 0.05, 1.0);
+  drawTriangle([-0.6, -0.7, -0.4, -0.2, -0.2, -0.7]); // leaves
+  drawTriangle([-0.6, -0.4, -0.4, 0.0, -0.2, -0.4]);
+
 }
