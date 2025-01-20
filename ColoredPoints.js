@@ -78,6 +78,11 @@ let g_selectedSegments = 10.0;
 
 // Set up actions for the HTML UI elements
 function addActionsForHtmlUI() {
+  // Awesomeness: draw a pattern button event
+  document.getElementById('patternSizeSlide').addEventListener('mouseup', function() { patSize = this.value; });
+  document.getElementById('patternNumSlide').addEventListener('mouseup', function() { numInc = parseFloat(this.value); });
+  document.getElementById('patternButton').onclick = function() { drawAPattern(); };
+
   // Button events (shape type)
   document.getElementById('green').onclick = function() { g_selectedColor = [0.0, 1.0, 0.0, 1.0] };
   document.getElementById('red').onclick = function() { g_selectedColor = [1.0, 0.0, 0.0, 1.0] };
@@ -175,7 +180,7 @@ var g_sizes = [];*/
 function click(ev) {
   // Extract the event click and return it in WebGL coordinates
   [x, y] = convertCoordinatesEventToGL(ev);
-  console.log('x: ' + x, ' y: ' + y);
+  //console.log('x: ' + x, ' y: ' + y);
 
   // Create and store the new point
   let point;
@@ -225,9 +230,6 @@ function drawAPicture() {
   // clear the canvas
   g_shapesList = [];
   renderAllShapes();
-
-  let width;
-  let height;
 
   // draw triangles
 
@@ -308,4 +310,28 @@ function drawAPicture() {
   drawTriangle([-0.6, -0.7, -0.4, -0.2, -0.2, -0.7]); // leaves
   drawTriangle([-0.6, -0.4, -0.4, 0.0, -0.2, -0.4]);
 
+}
+
+// drawAPattern Global variables:
+var numInc = 0.1;
+let patSize = 3.0;
+
+function drawAPattern() {
+
+  // clear the canvas
+  g_shapesList = [];
+  renderAllShapes();
+
+  let num = 0;
+
+  for (i = -1.0; i < 1.0; i += numInc) {
+    for (j = -1.0; j < 1.0; j += numInc) {
+      num++;
+      let pnt = new Point();
+      pnt.position = [i, j];
+      pnt.size = patSize;
+      pnt.color = [Math.abs(j), Math.abs(j), Math.abs(i), 1.0];
+      pnt.render();
+    }
+  }
 }

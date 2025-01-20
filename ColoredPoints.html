@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
+  <style>
+    body {
+      background-color: lightseagreen;
+    }
+  </style>
+
   <head>
     <meta charset="utf-8" />
     <title>Change a point color</title>
@@ -12,7 +19,19 @@
 
     <p id="numdot"> XXX </p>
 
+    Awesomeness:
     <br>
+    Pattern Point Size <input type="range" min="3.0" max="15.0" value="3.0" class="slider" id="patternSizeSlide">
+    <br>
+    Number of Points in Pattern (lower is more) <input type="range" min="0.07" max="0.25" step="0.02" value="0.07" class="slider" id="patternNumSlide">
+    <br><br>
+    <button type="button" id="patternButton">Draw a pattern</button>
+    <br>
+    end of Awesomeness
+  
+
+
+    <br><br><br>
     <button type="button" id="green">Green</button>
     <button type="button" id="red">Red</button>
     <button type="button" id="clearButton">Clear</button>
